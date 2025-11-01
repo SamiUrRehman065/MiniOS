@@ -1,0 +1,61 @@
+# === General ===
+*.log
+*.tmp
+*.bak
+*.swp
+*.user
+*.suo
+*.cache
+*.db
+*.sqlite
+.vs/
+.vscode/
+*.DS_Store
+Thumbs.db
+
+# === Build Artifacts ===
+bin/
+obj/
+build/
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.idb
+*.lib
+*.exp
+*.obj
+
+# === C# / .NET ===
+*.userprefs
+*.resx
+*.aps
+*.ncb
+*.opendb
+*.VC.db
+*.VC.opendb
+*.json.swp
+
+# === Assembly (BootLoader) ===
+bootloader.obj
+bootloader.exe
+*.lst
+*.map
+
+# === Other ===
+/packages/
+/publish/
+/dist/
+/Debug/
+/Release/
+
+# === Git ===
+*.orig
+.idea/
+*.tgz
+*.tar.gz
+*.zip
+
+# === Ignore system generated files ===
+desktop.ini
+ehthumbs.db
