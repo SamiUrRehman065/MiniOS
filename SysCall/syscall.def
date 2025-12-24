@@ -1,0 +1,12 @@
+LIBRARY "syscall"
+EXPORTS
+    Sys_Init
+    Sys_Print
+    Sys_Input
+    Sys_Sleep
+    Sys_MemAlloc
+    Sys_MemFree
+    Sys_FileCreate
+    Sys_FileWrite
+    Sys_FileRead
+    Sys_Log
