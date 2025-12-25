@@ -1,61 +1,61 @@
-### ??? MiniOS - Educational Operating System Simulation
+### 🖥️ MiniOS - Educational Operating System Simulation
 
-> A comprehensive operating system simulation featuring an x86 Assembly bootloader, C# WinForms kernel application, and native syscall library � built for educational purposes to demonstrate core OS concepts with professional-grade architecture.
-
----
-
-### ?? Project Overview
-
-- ?? x86 Assembly bootloader with graphical boot sequence  
-- ??? Windows Forms kernel with modern UI (Guna.UI2)  
-- ?? Native syscall layer (syscall.dll) for low-level operations  
-- ?? Virtual File System with security sandbox  
-- ?? Real-time process and memory monitoring  
-- ?? Full-featured console with 35+ commands  
-- ?? System logging with categorized entries  
-- ?? Responsive dark-themed UI with animations
+> A comprehensive operating system simulation featuring an x86 Assembly bootloader, C# WinForms kernel application, and native syscall library — built for educational purposes to demonstrate core OS concepts.
 
 ---
 
-### ?? Folder Structure
+### 📋 Project Overview
+
+- 🚀 x86 Assembly bootloader with graphical boot sequence  
+- 🖥️ Windows Forms kernel with modern UI (Guna.UI2)  
+- 🔌 Native syscall layer (syscall.dll) for low-level operations  
+- 📁 Virtual File System with security sandbox  
+- 📊 Real-time process and memory monitoring  
+- 💻 Full-featured console with 35+ commands  
+- 📝 System logging with categorized entries  
+- 🎨 Responsive dark-themed UI with animations
+
+---
+
+### 📂 Folder Structure
 
 ```plaintext
 MiniOS/
-??? BootLoader/
-?   ??? bootloader.asm          ? x86 Assembly bootloader source
-?   ??? bootloader.exe          ? Compiled bootloader executable
-?
-??? KernelApp/
-?   ??? UserControls/
-?   ?   ??? ConsoleControl.cs           ? Command-line interface
-?   ?   ??? ProcessMgrControl.cs        ? Process manager
-?   ?   ??? MemoryVisControl.cs         ? Memory visualization
-?   ?   ??? SysLogControl.cs            ? System log viewer
-?   ?
-?   ??? Resources/
-?   ?   ??? Documentation.md            ? Full documentation
-?   ?   ??? FlowDiagrams.md             ? System flow diagrams
-?   ?
-?   ??? Home.cs                 ? Main application form
-?   ??? KernelState.cs          ? Shared kernel state
-?   ??? Program.cs              ? Application entry point
-?
-??? SysCall/
-?   ??? syscall.asm             ? Native syscall source
-?   ??? syscall.dll             ? Compiled native DLL
-?
-??? VFS/                        ? Virtual File System root
-?   ??? (user files)
-?
-??? Logs/
-?   ??? kernel.log              ? Kernel log file
-?
-??? MiniOS.sln                  ? Solution file
+├── BootLoader/
+│   ├── bootloader.asm          # x86 Assembly bootloader source
+│   └── bootloader.exe          # Compiled bootloader executable
+│
+├── KernelApp/
+│   ├── UserControls/
+│   │   ├── ConsoleControl.cs           # Command-line interface
+│   │   ├── ProcessMgrControl.cs        # Process manager
+│   │   ├── MemoryVisControl.cs         # Memory visualization
+│   │   └── SysLogControl.cs            # System log viewer
+│   │
+│   ├── Resources/
+│   │   ├── Documentation. md            # Full documentation
+│   │   └── FlowDiagrams. md             # System flow diagrams
+│   │
+│   ├── Home. cs                 # Main application form
+│   ├── KernelState.cs          # Shared kernel state
+│   └── Program.cs              # Application entry point
+│
+├── SysCall/
+│   ├── syscall.asm             # Native syscall source
+│   └── syscall. dll             # Compiled native DLL
+│
+├── VFS/                        # Virtual File System root
+│   └── (user files)
+│
+├── Logs/
+│   └── kernel.log              # Kernel log file
+│
+└── MiniOS.sln                  # Solution file
 ```
 
 ---
 
-### ? Why This Architecture Works
+### ✨ Why This Architecture Works
 
 - **Layered Design** separates boot, kernel, syscall, and resource layers
 - **Native Interop** demonstrates real P/Invoke and DLL communication
@@ -65,7 +65,7 @@ MiniOS/
 
 ---
 
-### ?? Setup Instructions
+### 🛠️ Setup Instructions
 
 1. **Clone the Repository**
 
@@ -75,15 +75,15 @@ git clone https://github.com/SamiUrRehman065/MiniOS.git
 
 2. **Prerequisites**
    - Visual Studio 2019 or later
-   - .NET Framework 4.7.2
-   - Platform: x86 (32-bit)
-   - NuGet Package: Guna.UI2.WinForms
+   - . NET Framework 4.7.2
+   - Platform:  x86 (32-bit)
+   - NuGet Package:  Guna.UI2.WinForms
 
 3. **Build the Solution**
    - Open `MiniOS.sln` in Visual Studio
    - Set platform to **x86**
    - Restore NuGet packages
-   - Build ? Build Solution (Ctrl+Shift+B)
+   - Build → Build Solution (Ctrl+Shift+B)
 
 4. **Run the Application**
    - **Full Boot:** Execute `BootLoader\bootloader.exe`
@@ -91,52 +91,52 @@ git clone https://github.com/SamiUrRehman065/MiniOS.git
 
 ---
 
-### ?? Module Breakdown
+### 📦 Module Breakdown
 
 | Module | Purpose | Technology | Status |
 |--------|---------|------------|--------|
-| `bootloader.asm` | Graphical boot sequence with countdown | x86 Assembly | ? Complete |
-| `Home.cs` | Main kernel form with navigation | C# WinForms | ? Complete |
-| `ConsoleControl` | Command-line interface (35+ commands) | C# | ? Complete |
-| `ProcessMgrControl` | Process monitoring and display | C# | ? Complete |
-| `MemoryVisControl` | Memory visualization with segments | C# | ? Complete |
-| `SysLogControl` | System log viewer with categories | C# | ? Complete |
-| `syscall.dll` | Native syscall library | x86 Assembly | ? Complete |
-| `KernelState` | Shared state management | C# | ? Complete |
-| `VFS` | Virtual file system with sandbox | C# | ? Complete |
+| `bootloader.asm` | Graphical boot sequence with countdown | x86 Assembly | ✅ Complete |
+| `Home.cs` | Main kernel form with navigation | C# WinForms | ✅ Complete |
+| `ConsoleControl` | Command-line interface (35+ commands) | C# | ✅ Complete |
+| `ProcessMgrControl` | Process monitoring and display | C# | ✅ Complete |
+| `MemoryVisControl` | Memory visualization with segments | C# | ✅ Complete |
+| `SysLogControl` | System log viewer with categories | C# | ✅ Complete |
+| `syscall.dll` | Native syscall library | x86 Assembly | ✅ Complete |
+| `KernelState` | Shared state management | C# | ✅ Complete |
+| `VFS` | Virtual file system with sandbox | C# | ✅ Complete |
 
 ---
 
-### ?? Architecture Notes
+### 🏗️ Architecture Notes
 
 - **Bootloader:** x86 Assembly with Windows API (StdCall convention)  
-- **Kernel:** C# 7.3 on .NET Framework 4.7.2  
-- **UI Framework:** Windows Forms with Guna.UI2.WinForms  
+- **Kernel:** C# 7.3 on . NET Framework 4.7.2  
+- **UI Framework:** Windows Forms with Guna.UI2. WinForms  
 - **Native Layer:** P/Invoke to syscall.dll  
 - **Security:** VFS sandboxing, path validation, access control  
 - **Fallback:** Graceful degradation when syscall.dll unavailable
 
 ---
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 
-- ?? Add script execution support (.sh/.bat files)  
-- ?? Implement command piping (cmd1 | cmd2)  
-- ?? Add multi-user support with permissions  
-- ?? Simulate network commands (ping, netstat)  
-- ?? Add kernel analytics dashboard  
-- ?? Implement theme switching (dark/light)
-
----
-
-### ? Developer Reflection
-
-> "MiniOS represents a deep dive into operating system fundamentals � from writing x86 Assembly for the bootloader to implementing P/Invoke for native syscalls. This project bridges the gap between theoretical OS concepts and practical implementation. Every component, from the 35-second boot countdown to the VFS security sandbox, was designed to make operating system internals tangible and educational."  
-> � *Sami Ur Rehman*
+- 📜 Add script execution support (. sh/. bat files)  
+- 🔄 Implement command piping (cmd1 | cmd2)  
+- 👥 Add multi-user support with permissions  
+- 🌐 Simulate network commands (ping, netstat)  
+- 📈 Add kernel analytics dashboard  
+- 🎨 Implement theme switching (dark/light)
 
 ---
 
-### ????? Author
+### 💡 Developer Reflection
+
+> "MiniOS represents a deep dive into operating system fundamentals — from writing x86 Assembly for the bootloader to implementing P/Invoke for native syscalls. This project bridges the gap between theoretical OS concepts and practical implementation."  
+> — *Sami Ur Rehman*
+
+---
+
+### 👨‍💻 Author
 
 **Sami Ur Rehman**  
 Karachi, Pakistan  
@@ -144,16 +144,16 @@ GitHub: [@SamiUrRehman065](https://github.com/SamiUrRehman065)
 
 ---
 
-# ?? Detailed Overview Of Each Module
+# 📖 Detailed Overview Of Each Module
 
 ---
 
-## ?? Bootloader Module
+## 🚀 Bootloader Module
 
-### ?? Overview
+### 📋 Overview
 The bootloader is a 32-bit x86 Assembly program that simulates a real BIOS/UEFI boot process with visual feedback, progress bars, and audio cues before launching the kernel application.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `bootloader.asm`
 - **Architecture:** x86 (32-bit), Flat memory model, StdCall convention
 - **Boot Flow:**
@@ -161,9 +161,9 @@ The bootloader is a 32-bit x86 Assembly program that simulates a real BIOS/UEFI 
   - Display ASCII logo with animation
   - Execute 5 boot phases with progress bar
   - 35-second countdown with beeps
-  - Launch KernelApp.exe via CreateProcessA
+  - Launch KernelApp. exe via CreateProcessA
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Visual Elements:**
   - ASCII art MiniOS logo
   - Color-coded status messages (11 colors)
@@ -175,7 +175,7 @@ The bootloader is a 32-bit x86 Assembly program that simulates a real BIOS/UEFI 
   - Countdown beeps (every 5 seconds)
   - Final launch fanfare
 
-### ?? Boot Phases
+### ⚙️ Boot Phases
 | Phase | Description | Checks |
 |-------|-------------|--------|
 | Phase 1 | Hardware Detection | CPU, Cache, RAM, Memory Test |
@@ -184,27 +184,27 @@ The bootloader is a 32-bit x86 Assembly program that simulates a real BIOS/UEFI 
 | Phase 4 | System Services | Scheduler, Memory Manager, VFS, Logger |
 | Phase 5 | Final Checks | Integrity Verification, Ready Status |
 
-### ?? Windows API Functions
+### 🔌 Windows API Functions
 - `GetStdHandle`, `WriteConsoleA`, `SetConsoleTextAttribute`
 - `SetConsoleCursorPosition`, `FillConsoleOutputCharacterA`
 - `Sleep`, `Beep`, `CreateProcessA`, `ExitProcess`
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add boot configuration options
 - Implement boot menu for multiple kernels
 - Add keyboard interrupt handling
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ??? Main Form Module (Home.cs)
+## 🖥️ Main Form Module (Home.cs)
 
-### ?? Overview
+### 📋 Overview
 The primary application window containing navigation, status bar, and dynamic content panel with modern UI and animations.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `Home.cs`
 - **Base Class:** `Form`
 - **Core Functions:**
@@ -212,7 +212,7 @@ The primary application window containing navigation, status bar, and dynamic co
   - `AnimateIndicator()`: Smooth sidebar animation
   - `clockTimer_Tick()`: Real-time CPU/Memory monitoring
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Header Panel:**
   - Draggable title bar (P/Invoke)
   - Window controls (Minimize, Maximize, Close)
@@ -227,12 +227,12 @@ The primary application window containing navigation, status bar, and dynamic co
   - Dynamic UserControl loading
   - Smooth view transitions
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - P/Invoke for window dragging (user32.dll)
 - PerformanceCounter for system monitoring
 - Async loading prevents UI freezing
 
-### ?? P/Invoke Declarations
+### 🔌 P/Invoke Declarations
 ```csharp
 [DllImport("user32.dll")]
 private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
@@ -241,22 +241,22 @@ private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lPar
 private static extern bool ReleaseCapture();
 ```
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add window state persistence
 - Implement keyboard shortcuts
 - Add system tray support
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Console Control Module
+## 💻 Console Control Module
 
-### ?? Overview
+### 📋 Overview
 Full-featured command-line interface with 35+ commands, environment variables, command history, and native syscall integration.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `ConsoleControl.cs`
 - **Core Functions:**
   - `ExecuteCommand()`: Process user input
@@ -264,7 +264,7 @@ Full-featured command-line interface with 35+ commands, environment variables, c
   - `ExpandVariables()`: Replace $VAR with values
   - `Sys_*()`: Syscall wrapper methods with fallback
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Console Output:**
   - Color-coded messages (6 colors)
   - Scrollable RichTextBox
@@ -274,7 +274,7 @@ Full-featured command-line interface with 35+ commands, environment variables, c
   - History navigation (Up/Down arrows)
   - Enter to execute
 
-### ?? Command Categories
+### 📝 Command Categories
 
 | Category | Commands |
 |----------|----------|
@@ -286,13 +286,13 @@ Full-featured command-line interface with 35+ commands, environment variables, c
 | Utilities | date, time, sleep, log, history |
 | Power | shutdown, reboot |
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - VFS sandbox (cannot escape /VFS folder)
 - Path validation on all file operations
 - Parameterized syscall wrappers
 - Access denied logging
 
-### ??? Environment Variables
+### 🌐 Environment Variables
 | Variable | Default | Description |
 |----------|---------|-------------|
 | USER | root | Current user |
@@ -302,32 +302,32 @@ Full-featured command-line interface with 35+ commands, environment variables, c
 | HOME | / | Home directory |
 | PWD | (dynamic) | Current directory |
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add script execution support
 - Implement command aliases
 - Add tab completion
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Syscall DLL Module
+## 🔌 Syscall DLL Module
 
-### ?? Overview
+### 📋 Overview
 Native 32-bit DLL providing low-level system operations via Windows API, with P/Invoke integration from C#.
 
-### ?? Backend Logic
-- **File:** `syscall.dll` (Source: `syscall.asm`)
+### 🔧 Backend Logic
+- **File:** `syscall.dll` (Source:  `syscall.asm`)
 - **Architecture:** x86 (32-bit), StdCall convention
 - **Entry Point:** `DllMain`
 
-### ?? Exported Functions
+### 🔌 Exported Functions
 
 | Function | Parameters | Return | Description |
 |----------|------------|--------|-------------|
 | `Sys_Init` | (none) | void | Initialize module |
-| `Sys_Log` | message | void | Write to kernel.log |
+| `Sys_Log` | message | void | Write to kernel. log |
 | `Sys_Print` | message | void | Print to stdout |
 | `Sys_Input` | buffer, maxLen | void | Read from stdin |
 | `Sys_Sleep` | milliseconds | void | Sleep thread |
@@ -338,39 +338,39 @@ Native 32-bit DLL providing low-level system operations via Windows API, with P/
 | `Sys_FileRead` | filename, buffer, maxLen | int | Read file |
 | `Sys_DirCreate` | dirPath | int | Create directory |
 
-### ?? Fallback Mechanism
-When syscall.dll is unavailable:
-- File operations ? `System.IO`
-- Sleep ? `Thread.Sleep`
-- Memory operations ? Disabled (simulation message)
+### 🔄 Fallback Mechanism
+When syscall.dll is unavailable: 
+- File operations → `System.IO`
+- Sleep → `Thread.Sleep`
+- Memory operations → Disabled (simulation message)
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - All functions use Windows API internally
 - HeapAlloc/HeapFree for memory management
 - CreateFileA/WriteFile/ReadFile for file I/O
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add network syscalls
 - Implement process creation
 - Add registry operations
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Virtual File System Module
+## 📁 Virtual File System Module
 
-### ?? Overview
+### 📋 Overview
 Sandboxed file system allowing safe file operations within the /VFS directory, preventing access to host system files.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **Root Path:** `<ProjectPath>/VFS/`
 - **Initialization:** Auto-creates VFS folder if missing
 - **Path Resolution:** Converts relative to absolute paths
 - **Security Check:** Validates all paths stay within VFS
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Directory Listing:**
   - Color-coded [DIR] and [FILE] entries
   - File sizes formatted (B, KB, MB)
@@ -379,7 +379,7 @@ Sandboxed file system allowing safe file operations within the /VFS directory, p
   - `cd` with `.`, `..`, `/`, `~` support
   - `pwd` shows current location
 
-### ?? Supported Operations
+### 📝 Supported Operations
 
 | Operation | Command | Method |
 |-----------|---------|--------|
@@ -392,38 +392,38 @@ Sandboxed file system allowing safe file operations within the /VFS directory, p
 | Write File | `write <file> <text>` | `WriteToFile()` |
 | Delete File | `rm <file>` | `DeleteFile()` |
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 ```csharp
 // Security check prevents VFS escape
 if (!newPath.StartsWith(vfsFolder, StringComparison.OrdinalIgnoreCase))
 {
     PrintLine("cd: Access denied - Cannot navigate outside VFS", colorError);
-    Sys_Log($"CD DENIED: Attempted to access {path}");
+    Sys_Log($"CD DENIED:  Attempted to access {path}");
     return;
 }
 ```
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add file permissions (rwx)
 - Implement symbolic links
 - Add file search functionality
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Process Manager Module
+## 📊 Process Manager Module
 
-### ?? Overview
+### 📋 Overview
 Displays simulated process list with PID, name, status, and memory usage in a professional grid layout.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `ProcessMgrControl.cs`
 - **Data Source:** `KernelState.GetProcessList()`
 - **Refresh:** Timer-based auto-refresh
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **DataGridView:**
   - PID, Process Name, Status, Memory columns
   - Color-coded status (Running = Green)
@@ -432,7 +432,7 @@ Displays simulated process list with PID, name, status, and memory usage in a pr
   - Total process count
   - Memory usage summary
 
-### ?? Process Properties
+### 📝 Process Properties
 | Property | Type | Description |
 |----------|------|-------------|
 | PID | int | Process identifier |
@@ -440,32 +440,32 @@ Displays simulated process list with PID, name, status, and memory usage in a pr
 | Status | string | Running/Stopped |
 | MemoryMB | int | Memory in MB |
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - Thread-safe access via KernelState
 - Deep copy of process list prevents modification
 - Timer disposal on control unload
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add process termination
 - Implement sorting/filtering
 - Add CPU usage column
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Memory Visualization Module
+## 💾 Memory Visualization Module
 
-### ?? Overview
+### 📋 Overview
 Visual representation of memory allocation with segment bars, statistics, and color-coded usage levels.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `MemoryVisControl.cs`
 - **Total Memory:** 4096 MB (simulated)
 - **Refresh:** Timer-based with change detection
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Segment Panel:**
   - Color-coded memory blocks per process
   - Free memory shown in gray
@@ -476,7 +476,7 @@ Visual representation of memory allocation with segment bars, statistics, and co
 - **Process Grid:**
   - Memory per process with colors
 
-### ?? Color Coding
+### 🎨 Color Coding
 | Usage Level | Color | Indicator |
 |-------------|-------|-----------|
 | < 60% | Green | Normal |
@@ -484,32 +484,32 @@ Visual representation of memory allocation with segment bars, statistics, and co
 | > 80% | Red | High |
 | > 90% | Red + Log | Critical |
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - Hash-based change detection
 - Memory change threshold logging (>50MB)
 - Thread-safe state access
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add memory allocation history
 - Implement memory leak detection
 - Add swap space visualization
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? System Log Module
+## 📝 System Log Module
 
-### ?? Overview
+### 📋 Overview
 Displays kernel log entries with categorization, color-coding, filtering, and export capabilities.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `SysLogControl.cs`
 - **Log Source:** `Logs/kernel.log`
 - **Auto-Refresh:** 3-second interval (toggleable)
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **DataGridView:**
   - Timestamp, Type, Message columns
   - Color-coded by log type
@@ -519,7 +519,7 @@ Displays kernel log entries with categorization, color-coding, filtering, and ex
 - **Control Buttons:**
   - Refresh, Clear, Export, Auto-refresh toggle
 
-### ?? Log Entry Types
+### 📝 Log Entry Types
 | Type | Color | Detection Keywords |
 |------|-------|-------------------|
 | CMD | Blue | "CMD:", "COMMAND" |
@@ -531,32 +531,32 @@ Displays kernel log entries with categorization, color-coding, filtering, and ex
 | PROC | Cyan | "PROCESS", "PID" |
 | INFO | Gray | Default |
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - File existence check before read
 - Exception handling for file access
 - Timer disposal on control unload
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add log filtering by type
 - Implement log search
 - Add log rotation
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Kernel State Module
+## 🔄 Kernel State Module
 
-### ?? Overview
+### 📋 Overview
 Thread-safe shared state management for process list and kernel-wide data across all controls.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **File:** `KernelState.cs`
 - **Pattern:** Singleton with lock-based synchronization
 - **Thread Safety:** All operations protected by lock
 
-### ?? Key Methods
+### 📝 Key Methods
 ```csharp
 public static List<ProcessInfo> GetProcessList()
 public static void UpdateProcessList(List<ProcessInfo> processes)
@@ -564,85 +564,85 @@ public static int AddProcess(string name, int memoryMB)
 public static bool RemoveProcess(int pid)
 ```
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - Deep copy on get/set prevents external modification
 - Lock ensures thread-safe access
 - Null checks on all operations
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add event notifications for state changes
 - Implement state persistence
 - Add state history/undo
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Error Handling Module
+## ⚠️ Error Handling Module
 
-### ?? Overview
+### 📋 Overview
 Comprehensive error handling with graceful degradation and user-friendly messages throughout the application.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **Try-Catch Blocks:** All critical operations wrapped
-- **Fallback Mechanisms:** syscall.dll unavailable ? managed code
+- **Fallback Mechanisms:** syscall.dll unavailable → managed code
 - **User Feedback:** Color-coded error messages in console
 
-### ?? Security Measures
+### 🔒 Security Measures
 - No stack traces exposed to users
 - Exception details logged to kernel.log
 - Input sanitization on all commands
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Error Messages:**
   - Red color for errors
   - Yellow for warnings
   - Context-specific messages
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add global exception handler
 - Implement error analytics
 - Add error recovery suggestions
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Power Management Module
+## ⚡ Power Management Module
 
-### ?? Overview
+### 📋 Overview
 Simulated shutdown and reboot commands with visual feedback and logging.
 
-### ?? Backend Logic
+### 🔧 Backend Logic
 - **Commands:** `shutdown`, `exit`, `reboot`
 - **Actions:**
   - Display shutdown/reboot sequence
   - Log power events
   - Print to native console (if available)
 
-### ?? Frontend Features
+### 🎨 Frontend Features
 - **Visual Feedback:**
   - Warning-colored messages
   - Multi-step sequence display
   - Goodbye message
 
-### ?? Security & Validation
+### 🔒 Security & Validation
 - Events logged to kernel.log
 - Optional confirmation prompts
 
-### ?? Suggested Enhancements
+### 🚀 Suggested Enhancements
 - Add actual application shutdown
 - Implement auto-save before shutdown
 - Add scheduled shutdown
 
-### ? Status
-`? Complete`
+### ✅ Status
+`✅ Complete`
 
 ---
 
-## ?? Performance Metrics
+## 📊 Performance Metrics
 
 ### Startup Times
 | Component | Time |
@@ -660,7 +660,7 @@ Simulated shutdown and reboot commands with visual feedback and logging.
 
 ---
 
-## ??? Build Instructions
+## 🛠️ Build Instructions
 
 ### Bootloader (Assembly)
 ```sh
@@ -685,18 +685,18 @@ link /DLL /DEF:syscall.def /entry:DllMain syscall.obj kernel32.lib user32.lib
 
 ---
 
-## ?? License
+## 📜 License
 
-This project is for **educational purposes only**.
+This project is for **educational purposes only**. 
 
 ---
 
-## ?? Acknowledgments
+## 🙏 Acknowledgments
 
 - Microsoft for Windows API documentation
-- Guna.UI2 for modern WinForms components
+- Guna. UI2 for modern WinForms components
 - The OS development community for inspiration
 
 ---
 
-*Made with ?? for learning Operating System concepts*
+*Made with ❤️ for learning Operating System concepts*
