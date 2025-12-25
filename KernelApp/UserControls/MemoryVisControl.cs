@@ -2,12 +2,30 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace KernelApp.UserControls
 {
     public partial class MemoryVisControl : UserControl
     {
+        // Syscall DLL imports
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_Init")]
+        private static extern void Native_Sys_Init();
+
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_Log", CharSet = CharSet.Ansi)]
+        private static extern void Native_Sys_Log(string message);
+
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_MemAlloc")]
+        private static extern IntPtr Native_Sys_MemAlloc(int sizeBytes);
+
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_MemFree")]
+        private static extern int Native_Sys_MemFree(IntPtr memPtr);
+
+        // Track if syscall DLL is available
+        private static bool syscallAvailable = false;
+        private static bool syscallChecked = false;
+
         // Memory configuration
         private const int TOTAL_MEMORY_MB = 4096; // 4 GB simulated RAM
 
@@ -28,6 +46,7 @@ namespace KernelApp.UserControls
 
         // Track previous state to detect changes
         private string lastProcessHash = "";
+        private int previousUsedMemory = 0;
 
         public MemoryVisControl()
         {
@@ -37,8 +56,87 @@ namespace KernelApp.UserControls
 
         private void MemoryVisControl_Load(object sender, EventArgs e)
         {
+            CheckSyscallAvailability();
             ForceRefreshMemoryData();
             refreshTimer.Start();
+
+            Sys_Log("Memory Visualizer module initialized");
+        }
+
+        private static void CheckSyscallAvailability()
+        {
+            if (syscallChecked) return;
+
+            syscallChecked = true;
+            try
+            {
+                Native_Sys_Init();
+                syscallAvailable = true;
+            }
+            catch (DllNotFoundException)
+            {
+                syscallAvailable = false;
+            }
+            catch (EntryPointNotFoundException)
+            {
+                syscallAvailable = false;
+            }
+            catch (Exception)
+            {
+                syscallAvailable = false;
+            }
+        }
+
+        private static void Sys_Log(string message)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+            if (!syscallAvailable) return;
+
+            try
+            {
+                Native_Sys_Log(message);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Test memory allocation using native syscall
+        /// </summary>
+        private IntPtr Sys_MemAlloc(int sizeBytes)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+
+            if (syscallAvailable)
+            {
+                try
+                {
+                    return Native_Sys_MemAlloc(sizeBytes);
+                }
+                catch { }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// Test memory free using native syscall
+        /// </summary>
+        private bool Sys_MemFree(IntPtr memPtr)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+
+            if (memPtr == IntPtr.Zero) return false;
+
+            if (syscallAvailable)
+            {
+                try
+                {
+                    return Native_Sys_MemFree(memPtr) != 0;
+                }
+                catch { }
+            }
+
+            return false;
         }
 
         private void ApplyDataGridViewStyles()
@@ -96,6 +194,14 @@ namespace KernelApp.UserControls
                 lastProcessHash = currentHash;
                 RebuildMemorySegments(currentProcesses);
                 UpdateProcessGrid(currentProcesses);
+
+                // Log significant memory changes
+                int currentUsedMemory = currentProcesses?.Sum(p => p.MemoryMB) ?? 0;
+                if (Math.Abs(currentUsedMemory - previousUsedMemory) > 50)
+                {
+                    Sys_Log($"MEMORY_UPDATE: Total used memory changed {previousUsedMemory} -> {currentUsedMemory} MB");
+                    previousUsedMemory = currentUsedMemory;
+                }
             }
 
             lblLastUpdate.Text = $"Last Update: {DateTime.Now:HH:mm:ss}";
@@ -127,6 +233,10 @@ namespace KernelApp.UserControls
             if (usagePercent > 80)
             {
                 lblUsagePercent.ForeColor = Color.FromArgb(239, 68, 68); // Red
+                if (usagePercent > 90)
+                {
+                    Sys_Log($"MEMORY_WARNING: High memory usage detected ({usagePercent:F1}%)");
+                }
             }
             else if (usagePercent > 60)
             {
@@ -357,6 +467,7 @@ namespace KernelApp.UserControls
         protected override void OnHandleDestroyed(EventArgs e)
         {
             refreshTimer?.Stop();
+            Sys_Log("Memory Visualizer module shutdown");
             base.OnHandleDestroyed(e);
         }
     }

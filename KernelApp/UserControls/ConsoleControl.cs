@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Runtime.InteropServices;
@@ -32,14 +33,17 @@ namespace KernelApp.UserControls
         [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_DirCreate", CharSet = CharSet.Ansi)]
         private static extern int Native_Sys_DirCreate(string dirPath);
 
-        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_DirChange", CharSet = CharSet.Ansi)]
-        private static extern int Native_Sys_DirChange(string dirPath);
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_Print", CharSet = CharSet.Ansi)]
+        private static extern void Native_Sys_Print(string message);
 
-        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_DirGet", CharSet = CharSet.Ansi)]
-        private static extern int Native_Sys_DirGet(StringBuilder buffer, int bufferSize);
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_Input", CharSet = CharSet.Ansi)]
+        private static extern void Native_Sys_Input(StringBuilder buffer, int maxLen);
 
-        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_PathExists", CharSet = CharSet.Ansi)]
-        private static extern int Native_Sys_PathExists(string path);
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_MemAlloc")]
+        private static extern IntPtr Native_Sys_MemAlloc(int sizeBytes);
+
+        [DllImport("syscall.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "Sys_MemFree")]
+        private static extern int Native_Sys_MemFree(IntPtr memPtr);
 
         // Track if syscall DLL is available
         private static bool syscallAvailable = false;
@@ -54,6 +58,9 @@ namespace KernelApp.UserControls
         private int historyIndex = -1;
         private int commandCount = 0;
 
+        // Environment variables for scripting
+        private Dictionary<string, string> envVariables;
+
         // Console colors
         private readonly Color colorPrompt = Color.FromArgb(34, 197, 94);
         private readonly Color colorOutput = Color.FromArgb(166, 173, 186);
@@ -66,7 +73,18 @@ namespace KernelApp.UserControls
         {
             InitializeComponent();
             commandHistory = new List<string>();
+            envVariables = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             InitializeVirtualFileSystem();
+            InitializeEnvironmentVariables();
+        }
+
+        private void InitializeEnvironmentVariables()
+        {
+            envVariables["USER"] = "root";
+            envVariables["HOSTNAME"] = "minios-kernel";
+            envVariables["SHELL"] = "MiniOS Console";
+            envVariables["PATH"] = "/bin:/usr/bin";
+            envVariables["HOME"] = "/";
         }
 
         private void InitializeVirtualFileSystem()
@@ -154,6 +172,94 @@ namespace KernelApp.UserControls
             System.Threading.Thread.Sleep(milliseconds);
         }
 
+        /// <summary>
+        /// Print to native console using syscall (writes to stdout)
+        /// </summary>
+        private static void Sys_Print(string message)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+            if (!syscallAvailable) return;
+
+            try
+            {
+                Native_Sys_Print(message);
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// Read input from native console using syscall (reads from stdin)
+        /// </summary>
+        private static string Sys_Input(int maxLength = 256)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+
+            if (syscallAvailable)
+            {
+                try
+                {
+                    StringBuilder buffer = new StringBuilder(maxLength);
+                    Native_Sys_Input(buffer, maxLength);
+                    string result = buffer.ToString();
+                    // Trim CRLF from input
+                    return result.TrimEnd('\r', '\n');
+                }
+                catch { }
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
+        /// Allocate memory using native syscall
+        /// </summary>
+        private static IntPtr Sys_MemAlloc(int sizeBytes)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+
+            if (syscallAvailable)
+            {
+                try
+                {
+                    IntPtr ptr = Native_Sys_MemAlloc(sizeBytes);
+                    if (ptr != IntPtr.Zero)
+                    {
+                        Sys_Log($"MEMALLOC: Console allocated {sizeBytes} bytes at 0x{ptr.ToInt32():X8}");
+                    }
+                    return ptr;
+                }
+                catch { }
+            }
+
+            return IntPtr.Zero;
+        }
+
+        /// <summary>
+        /// Free memory using native syscall
+        /// </summary>
+        private static bool Sys_MemFree(IntPtr memPtr)
+        {
+            if (!syscallChecked) CheckSyscallAvailability();
+
+            if (memPtr == IntPtr.Zero) return false;
+
+            if (syscallAvailable)
+            {
+                try
+                {
+                    int result = Native_Sys_MemFree(memPtr);
+                    if (result != 0)
+                    {
+                        Sys_Log($"MEMFREE: Console freed memory at 0x{memPtr.ToInt32():X8}");
+                    }
+                    return result != 0;
+                }
+                catch { }
+            }
+
+            return false;
+        }
+
         private bool Sys_FileCreate(string filename)
         {
             if (!syscallChecked) CheckSyscallAvailability();
@@ -222,8 +328,6 @@ namespace KernelApp.UserControls
                     int bytesRead = Native_Sys_FileRead(fullPath, buffer, 8192);
                     if (bytesRead > 0)
                     {
-                        // Use the StringBuilder's content directly instead of substring
-                        // The buffer will contain the null-terminated string
                         return buffer.ToString();
                     }
                 }
@@ -299,6 +403,8 @@ namespace KernelApp.UserControls
             if (syscallAvailable)
             {
                 Sys_Log("Console module initialized");
+                // Also print to native console if available
+                Sys_Print("MiniOS Console initialized via syscall.dll\r\n");
             }
 
             PrintBootSequence();
@@ -316,6 +422,7 @@ namespace KernelApp.UserControls
             if (syscallAvailable)
             {
                 PrintLine("[BOOT] Syscall interface loaded (syscall.dll)", colorSuccess);
+                PrintLine("[BOOT] Native I/O: Sys_Print, Sys_Input available", colorSuccess);
             }
             else
             {
@@ -380,6 +487,9 @@ namespace KernelApp.UserControls
 
             Sys_Log($"CMD: {input}");
 
+            // Also echo command to native console
+            Sys_Print($"{GetPrompt()} {input}\r\n");
+
             ProcessCommand(input);
 
             txtCommand.Text = "";
@@ -391,11 +501,30 @@ namespace KernelApp.UserControls
 
         private string GetPrompt()
         {
-            return $"MiniOS:{GetRelativePath(currentDirectory)}>";
+            return $"MiniOS:{GetRelativePath(currentDirectory)  }>";
+        }
+
+        /// <summary>
+        /// Expand environment variables in a string ($VAR or ${VAR})
+        /// </summary>
+        private string ExpandVariables(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return input;
+
+            foreach (var kvp in envVariables)
+            {
+                input = input.Replace($"${{{kvp.Key}}}", kvp.Value);
+                input = input.Replace($"${kvp.Key}", kvp.Value);
+            }
+
+            return input;
         }
 
         private void ProcessCommand(string input)
         {
+            // Expand environment variables
+            input = ExpandVariables(input);
+
             string[] parts = input.Split(new[] { ' ' }, 2, StringSplitOptions.RemoveEmptyEntries);
             if (parts.Length == 0) return;
 
@@ -422,7 +551,19 @@ namespace KernelApp.UserControls
                     ShowTime();
                     break;
                 case "echo":
-                    PrintLine(args, colorOutput);
+                    EchoCommand(args);
+                    break;
+                case "print":
+                    PrintCommand(args);
+                    break;
+                case "read":
+                    ReadCommand(args);
+                    break;
+                case "set":
+                    SetCommand(args);
+                    break;
+                case "env":
+                    EnvCommand();
                     break;
                 case "ps":
                 case "tasklist":
@@ -432,6 +573,9 @@ namespace KernelApp.UserControls
                 case "memory":
                     ShowMemoryStatus();
                     break;
+                case "alloc":
+                    AllocCommand(args);
+                    break;
                 case "sysinfo":
                     ShowSystemInfo();
                     break;
@@ -439,10 +583,10 @@ namespace KernelApp.UserControls
                     ShowUptime();
                     break;
                 case "whoami":
-                    PrintLine("root@minios", colorOutput);
+                    PrintLine(envVariables["USER"], colorOutput);
                     break;
                 case "hostname":
-                    PrintLine("minios-kernel", colorOutput);
+                    PrintLine(envVariables["HOSTNAME"], colorOutput);
                     break;
 
                 // File System Commands
@@ -503,6 +647,254 @@ namespace KernelApp.UserControls
             PrintLine("", colorOutput);
         }
 
+        /// <summary>
+        /// Echo command - prints to GUI console
+        /// </summary>
+        private void EchoCommand(string args)
+        {
+            PrintLine(args, colorOutput);
+        }
+
+        /// <summary>
+        /// Print command - opens cmd.exe, echoes message, and shows result in MiniOS console
+        /// </summary>
+        private void PrintCommand(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                PrintLine("Usage: print <message>", colorWarning);
+                PrintLine("Opens cmd.exe, prints message, and displays result here", colorOutput);
+                return;
+            }
+
+            try
+            {
+                PrintLine($"[CMD] Opening command prompt to print: {args}", colorSystem);
+
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.Arguments = $"/c echo {args}";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.RedirectStandardOutput = true;
+                    process.StartInfo.RedirectStandardError = true;
+                    process.StartInfo.CreateNoWindow = false; // Show the cmd window
+                    process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+
+                    process.Start();
+
+                    string output = process.StandardOutput.ReadToEnd();
+                    string error = process.StandardError.ReadToEnd();
+
+                    process.WaitForExit();
+
+                    if (!string.IsNullOrEmpty(output))
+                    {
+                        PrintLine($"[CMD OUTPUT] {output.Trim()}", colorSuccess);
+                    }
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        PrintLine($"[CMD ERROR] {error.Trim()}", colorError);
+                    }
+
+                    PrintLine($"[CMD] Process exited with code: {process.ExitCode}", colorOutput);
+                }
+
+                Sys_Log($"PRINT CMD: {args}");
+            }
+            catch (Exception ex)
+            {
+                PrintLine($"[ERROR] Failed to execute print command: {ex.Message}", colorError);
+            }
+        }
+
+        /// <summary>
+        /// Read command - opens cmd.exe with set /p for user input, captures result
+        /// Stores result in environment variable
+        /// </summary>
+        private void ReadCommand(string args)
+        {
+            string varName = string.IsNullOrWhiteSpace(args) ? "INPUT" : args.Trim().ToUpper();
+
+            try
+            {
+                PrintLine($"[CMD] Opening command prompt for input into ${varName}...", colorSystem);
+                PrintLine("(Enter your input in the cmd window that opens)", colorWarning);
+
+                // Create a temporary batch file for input
+                string tempBatchFile = Path.Combine(Path.GetTempPath(), "minios_input.bat");
+                string tempOutputFile = Path.Combine(Path.GetTempPath(), "minios_input_result.txt");
+
+                // Write batch file that prompts for input and saves to temp file
+                string batchContent = $@"@echo off
+echo ═══════════════════════════════════════════════════
+echo         MiniOS Native Input - Enter value for {varName}
+echo ═══════════════════════════════════════════════════
+set /p USERINPUT=""Enter {varName}: ""
+echo %USERINPUT%> ""{tempOutputFile}"")
+echo.
+echo Input captured! This window will close...
+timeout /t 2 >nul
+";
+                File.WriteAllText(tempBatchFile, batchContent);
+
+                // Delete old output file if exists
+                if (File.Exists(tempOutputFile))
+                {
+                    File.Delete(tempOutputFile);
+                }
+
+                using (Process process = new Process())
+                {
+                    process.StartInfo.FileName = "cmd.exe";
+                    process.StartInfo.Arguments = $"/c \"{tempBatchFile}\"";
+                    process.StartInfo.UseShellExecute = true; // Opens visible cmd window
+                    process.StartInfo.CreateNoWindow = false;
+                    process.StartInfo.WindowStyle = ProcessWindowStyle.Normal;
+
+                    process.Start();
+                    process.WaitForExit(); // Wait for user to finish input
+                }
+
+                // Read the result from temp file
+                if (File.Exists(tempOutputFile))
+                {
+                    string input = File.ReadAllText(tempOutputFile).Trim();
+
+                    if (!string.IsNullOrEmpty(input))
+                    {
+                        envVariables[varName] = input;
+                        PrintLine($"[CMD INPUT] Read: '{input}'", colorSuccess);
+                        PrintLine($"Stored in ${varName}", colorOutput);
+                        Sys_Log($"INPUT CMD: Read '{input}' into ${varName}");
+                    }
+                    else
+                    {
+                        PrintLine("No input received or empty input.", colorWarning);
+                    }
+
+                    // Cleanup temp files
+                    File.Delete(tempOutputFile);
+                }
+                else
+                {
+                    PrintLine("Input was cancelled or failed.", colorWarning);
+                }
+
+                // Cleanup batch file
+                if (File.Exists(tempBatchFile))
+                {
+                    File.Delete(tempBatchFile);
+                }
+            }
+            catch (Exception ex)
+            {
+                PrintLine($"[ERROR] Failed to execute read command: {ex.Message}", colorError);
+            }
+        }
+
+        /// <summary>
+        /// Set command - sets environment variable
+        /// </summary>
+        private void SetCommand(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                PrintLine("Usage: set <NAME>=<value>", colorWarning);
+                PrintLine("Example: set MYVAR=hello", colorOutput);
+                return;
+            }
+
+            int eqIndex = args.IndexOf('=');
+            if (eqIndex <= 0)
+            {
+                // Just show variable value
+                string varName = args.Trim().ToUpper();
+                if (envVariables.TryGetValue(varName, out string value))
+                {
+                    PrintLine($"{varName}={value}", colorOutput);
+                }
+                else
+                {
+                    PrintLine($"Variable not found: {varName}", colorWarning);
+                }
+                return;
+            }
+
+            string name = args.Substring(0, eqIndex).Trim().ToUpper();
+            string val = args.Substring(eqIndex + 1);
+
+            envVariables[name] = val;
+            PrintLine($"Set {name}={val}", colorSuccess);
+            Sys_Log($"ENV: Set {name}={val}");
+        }
+
+        /// <summary>
+        /// Env command - shows all environment variables
+        /// </summary>
+        private void EnvCommand()
+        {
+            PrintLine("Environment Variables:", colorSystem);
+            PrintLine("──────────────────────────────────────", colorSystem);
+
+            foreach (var kvp in envVariables)
+            {
+                PrintLine($"  {kvp.Key}={kvp.Value}", colorOutput);
+            }
+
+            PrintLine($"\nTotal: {envVariables.Count} variables", colorOutput);
+        }
+
+        /// <summary>
+        /// Alloc command - test memory allocation syscall
+        /// </summary>
+        private void AllocCommand(string args)
+        {
+            if (string.IsNullOrWhiteSpace(args))
+            {
+                PrintLine("Usage: alloc <bytes>", colorWarning);
+                PrintLine("Allocates memory using Sys_MemAlloc syscall (test only)", colorOutput);
+                return;
+            }
+
+            if (!int.TryParse(args, out int bytes) || bytes <= 0)
+            {
+                PrintLine("Invalid size. Please specify a positive integer.", colorError);
+                return;
+            }
+
+            if (bytes > 1024 * 1024) // Limit to 1MB for safety
+            {
+                PrintLine("Size too large. Maximum 1MB for testing.", colorError);
+                return;
+            }
+
+            if (syscallAvailable)
+            {
+                IntPtr ptr = Sys_MemAlloc(bytes);
+                if (ptr != IntPtr.Zero)
+                {
+                    PrintLine($"Allocated {bytes} bytes at address 0x{ptr.ToInt32():X8}", colorSuccess);
+
+                    // Immediately free the test allocation
+                    if (Sys_MemFree(ptr))
+                    {
+                        PrintLine($"Freed memory at 0x{ptr.ToInt32():X8}", colorSuccess);
+                    }
+                }
+                else
+                {
+                    PrintLine("Memory allocation failed.", colorError);
+                }
+            }
+            else
+            {
+                PrintLine("[SIM] Would allocate memory via syscall.", colorWarning);
+                PrintLine("Note: Syscall module not available.", colorWarning);
+            }
+        }
+
         private void ChangeDirectory(string path)
         {
             if (string.IsNullOrWhiteSpace(path))
@@ -516,11 +908,9 @@ namespace KernelApp.UserControls
 
             if (path == "..")
             {
-                // Go up one directory
                 DirectoryInfo parent = Directory.GetParent(currentDirectory);
                 if (parent != null && currentDirectory != vfsFolder)
                 {
-                    // Don't go above VFS root
                     if (parent.FullName.StartsWith(vfsFolder, StringComparison.OrdinalIgnoreCase) ||
                         parent.FullName.Equals(vfsFolder, StringComparison.OrdinalIgnoreCase))
                     {
@@ -545,7 +935,6 @@ namespace KernelApp.UserControls
                 newPath = GetFullPath(path);
             }
 
-            // Security: Ensure we stay within VFS
             if (!newPath.StartsWith(vfsFolder, StringComparison.OrdinalIgnoreCase))
             {
                 PrintLine("cd: Access denied - Cannot navigate outside VFS", colorError);
@@ -556,6 +945,7 @@ namespace KernelApp.UserControls
             if (Directory.Exists(newPath))
             {
                 currentDirectory = newPath;
+                envVariables["PWD"] = GetRelativePath(newPath);
                 Sys_Log($"CD: Changed to {GetRelativePath(newPath)}");
                 PrintLine($"Changed to: {GetRelativePath(newPath)}", colorSuccess);
             }
@@ -580,14 +970,12 @@ namespace KernelApp.UserControls
 
             try
             {
-                // List directories first
                 foreach (var dir in Directory.GetDirectories(targetDir))
                 {
                     string name = Path.GetFileName(dir);
                     PrintLine($"  [DIR]  {name}/", Color.FromArgb(99, 102, 241));
                 }
 
-                // Then files
                 foreach (var file in Directory.GetFiles(targetDir))
                 {
                     string name = Path.GetFileName(file);
@@ -662,6 +1050,8 @@ namespace KernelApp.UserControls
                 else
                 {
                     PrintLine(content, colorOutput);
+                    // Also print to native console
+                    Sys_Print(content);
                 }
                 Sys_Log($"CAT: Read file {filename}");
             }
@@ -673,7 +1063,6 @@ namespace KernelApp.UserControls
 
         private void WriteToFile(string args)
         {
-            // Syntax: write <filename> <content>
             int spaceIndex = args.IndexOf(' ');
             if (spaceIndex <= 0)
             {
@@ -766,20 +1155,22 @@ namespace KernelApp.UserControls
             PrintLine("║  SYSTEM:                                                     ║", colorSystem);
             PrintLine("║    help, clear, version, sysinfo, uptime, syscall            ║", colorOutput);
             PrintLine("║                                                              ║", colorSystem);
+            PrintLine("║  I/O (Native Syscalls):                                      ║", colorSystem);
+            PrintLine("║    print <msg> - Print to native console (Sys_Print)         ║", colorOutput);
+            PrintLine("║    read [var]  - Read from native console (Sys_Input)        ║", colorOutput);
+            PrintLine("║    alloc <n>   - Test memory allocation (Sys_MemAlloc)       ║", colorOutput);
+            PrintLine("║                                                              ║", colorSystem);
+            PrintLine("║  ENVIRONMENT:                                                ║", colorSystem);
+            PrintLine("║    set <VAR>=<val> - Set environment variable                ║", colorOutput);
+            PrintLine("║    env            - Show all environment variables           ║", colorOutput);
+            PrintLine("║    echo $VAR      - Print variable value                     ║", colorOutput);
+            PrintLine("║                                                              ║", colorSystem);
             PrintLine("║  PROCESS:                                                    ║", colorSystem);
             PrintLine("║    ps         - List running processes                       ║", colorOutput);
             PrintLine("║    mem        - Show memory usage                            ║", colorOutput);
             PrintLine("║                                                              ║", colorSystem);
             PrintLine("║  FILE SYSTEM:                                                ║", colorSystem);
-            PrintLine("║    pwd        - Print current directory                      ║", colorOutput);
-            PrintLine("║    ls [path]  - List directory contents                      ║", colorOutput);
-            PrintLine("║    cd <path>  - Change directory (.. for parent, / for root) ║", colorOutput);
-            PrintLine("║    mkdir      - Create directory                             ║", colorOutput);
-            PrintLine("║    rmdir      - Remove empty directory                       ║", colorOutput);
-            PrintLine("║    touch      - Create empty file                            ║", colorOutput);
-            PrintLine("║    cat        - Display file contents                        ║", colorOutput);
-            PrintLine("║    write      - Write text to file (write file.txt hello)    ║", colorOutput);
-            PrintLine("║    rm/del     - Delete file                                  ║", colorOutput);
+            PrintLine("║    pwd, ls, cd, mkdir, rmdir, touch, cat, write, rm          ║", colorOutput);
             PrintLine("║                                                              ║", colorSystem);
             PrintLine("║  UTILITIES:                                                  ║", colorSystem);
             PrintLine("║    echo, date, time, sleep, log, history, whoami, hostname   ║", colorOutput);
@@ -857,11 +1248,11 @@ namespace KernelApp.UserControls
             PrintLine("╠═══════════════════════════════════════════════════╣", colorSystem);
             PrintLine("║  OS:           MiniOS Kernel v1.0                 ║", colorOutput);
             PrintLine("║  Architecture: x86-32bit                          ║", colorOutput);
-            PrintLine("║  Hostname:     minios-kernel                      ║", colorOutput);
-            PrintLine("║  User:         root                               ║", colorOutput);
+            PrintLine($"║  Hostname:     {envVariables["HOSTNAME"],-22}       ║", colorOutput);
+            PrintLine($"║  User:         {envVariables["USER"],-22}       ║", colorOutput);
             PrintLine("║  Shell:        MiniOS Console                     ║", colorOutput);
             string syscallStatus = syscallAvailable ? "LOADED" : "SIMULATION";
-            PrintLine($"║  Syscall:      {syscallStatus,-20}            ║", syscallAvailable ? colorSuccess : colorWarning);
+            PrintLine($"║  Syscall:      {syscallStatus,-22}       ║", syscallAvailable ? colorSuccess : colorWarning);
             PrintLine("╚═══════════════════════════════════════════════════╝", colorSystem);
         }
 
@@ -888,6 +1279,7 @@ namespace KernelApp.UserControls
         private void ShutdownCommand()
         {
             PrintLine("[SYSTEM] Initiating shutdown sequence...", colorWarning);
+            Sys_Print("[SYSTEM] Initiating shutdown sequence...\r\n");
             PrintLine("[SYSTEM] Saving state...", colorWarning);
             PrintLine("[SYSTEM] Goodbye.", colorSystem);
             Sys_Log("System shutdown initiated from console");
@@ -896,6 +1288,7 @@ namespace KernelApp.UserControls
         private void RebootCommand()
         {
             PrintLine("[SYSTEM] Initiating reboot sequence...", colorWarning);
+            Sys_Print("[SYSTEM] Initiating reboot sequence...\r\n");
             PrintLine("[SYSTEM] Restarting services...", colorWarning);
             Sys_Log("System reboot initiated from console");
         }
@@ -956,11 +1349,14 @@ namespace KernelApp.UserControls
 
             PrintLine("║                                                              ║", colorSystem);
             PrintLine("║  Exported Functions:                                         ║", colorSystem);
-            PrintLine("║    Sys_Init, Sys_Print, Sys_Input, Sys_Sleep                 ║", colorOutput);
-            PrintLine("║    Sys_MemAlloc, Sys_MemFree                                 ║", colorOutput);
+            PrintLine("║    Sys_Init      - Initialize syscall module                 ║", colorOutput);
+            PrintLine("║    Sys_Print     - Print to stdout (native console)          ║", colorOutput);
+            PrintLine("║    Sys_Input     - Read from stdin (native console)          ║", colorOutput);
+            PrintLine("║    Sys_Sleep     - Sleep for milliseconds                    ║", colorOutput);
+            PrintLine("║    Sys_MemAlloc  - Allocate heap memory                      ║", colorOutput);
+            PrintLine("║    Sys_MemFree   - Free heap memory                          ║", colorOutput);
             PrintLine("║    Sys_FileCreate, Sys_FileWrite, Sys_FileRead               ║", colorOutput);
-            PrintLine("║    Sys_DirCreate, Sys_DirChange, Sys_DirGet                  ║", colorOutput);
-            PrintLine("║    Sys_PathExists, Sys_Log                                   ║", colorOutput);
+            PrintLine("║    Sys_DirCreate, Sys_Log                                    ║", colorOutput);
             PrintLine("╚══════════════════════════════════════════════════════════════╝", colorSystem);
         }
 
