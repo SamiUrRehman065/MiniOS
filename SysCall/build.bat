@@ -6,5 +6,9 @@ ml /c /coff syscall.asm
 echo Linking Syscall DLL...
 link /DLL /DEF:syscall.def /SUBSYSTEM:WINDOWS syscall.obj kernel32.lib user32.lib /OUT:syscall.dll
 
+echo Copying to KernelApp output...
+copy /Y syscall.dll ..\KernelApp\bin\Debug\
+copy /Y syscall.dll ..\KernelApp\bin\x86\Debug\
+
 echo Done!
 pause
