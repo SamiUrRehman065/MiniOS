@@ -296,7 +296,7 @@
             this.pnlSegmentsContainer.Location = new System.Drawing.Point(12, 28);
             this.pnlSegmentsContainer.Name = "pnlSegmentsContainer";
             this.pnlSegmentsContainer.Padding = new System.Windows.Forms.Padding(4);
-            this.pnlSegmentsContainer.Size = new System.Drawing.Size(1061, 88);
+            this.pnlSegmentsContainer.Size = new System.Drawing.Size(1061, 104);
             this.pnlSegmentsContainer.TabIndex = 1;
             this.pnlSegmentsContainer.WrapContents = false;
             // 
