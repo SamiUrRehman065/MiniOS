@@ -147,17 +147,5 @@
   <ItemGroup>
     <None Include="Resources\system.png" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\dashboard.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ic_dashboard_128_28270.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ic_dashboard_128_28270 %281%29.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\ic_dashboard_128_28270 %282%29.png" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
