@@ -4,58 +4,111 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using KernelApp.Helpers;
+using KernelApp.UserControls;
 
 namespace KernelApp
 {
     public partial class MiniOs : Form
     {
-        // For dragging the borderless form
+        #region P/Invoke for Window Dragging
+
         [DllImport("user32.dll")]
         private static extern int SendMessage(IntPtr hWnd, int Msg, int wParam, int lParam);
+
         [DllImport("user32.dll")]
         private static extern bool ReleaseCapture();
+
         private const int WM_NCLBUTTONDOWN = 0xA1;
         private const int HT_CAPTION = 0x2;
 
-        private PerformanceCounter cpuCounter;
-        private Process currentProcess;
-        private Timer indicatorTimer; // Single timer instance for indicator animation
+        #endregion
+
+        #region Colors
+
+        private static readonly Color ColorButtonActive = Color.FromArgb(45, 45, 65);
+        private static readonly Color ColorButtonInactive = Color.Transparent;
+        private static readonly Color ColorTextActive = Color.White;
+        private static readonly Color ColorTextInactive = Color.FromArgb(166, 173, 186);
+        private static readonly Color ColorPanelBackground = Color.FromArgb(36, 36, 51);
+
+        #endregion
+
+        #region State
+
+        private PerformanceCounter _cpuCounter;
+        private Process _currentProcess;
+        private readonly Timer _indicatorTimer;
+        private int _targetIndicatorY;
+
+        #endregion
 
         public MiniOs()
         {
             InitializeComponent();
+
             lbldate.Text = DateTime.Now.ToString("dddd, MMMM dd, yyyy");
             lblTime.Text = DateTime.Now.ToString("HH:mm:ss");
 
-            // Initialize performance counters
-            try
-            {
-                cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
-                currentProcess = Process.GetCurrentProcess();
-            }
-            catch { }
+            InitializePerformanceCounters();
 
-            // Initialize indicator animation timer
-            indicatorTimer = new Timer { Interval = 10 };
+            _indicatorTimer = new Timer { Interval = 10 };
+            _indicatorTimer.Tick += IndicatorTimer_Tick;
 
             clockTimer.Start();
         }
 
-        private async Task LoadControl(UserControl control, string viewName, int buttonY)
+        #region Initialization
+
+        private void InitializePerformanceCounters()
         {
-            MainPanel.Controls.Clear();
+            try
+            {
+                _cpuCounter = new PerformanceCounter("Processor", "% Processor Time", "_Total");
+                _currentProcess = Process.GetCurrentProcess();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MiniOs: Failed to initialize performance counters: {ex.Message}");
+            }
+        }
+
+        private async void MiniOs_Load(object sender, EventArgs e)
+        {
+            SyscallHelper.EnsureInitialized();
+            SyscallHelper.Log("MiniOS Kernel started");
+
+            // Set initial indicator position without animation
+            pnlActiveIndicator.Top = btnProcessManager.Top;
+            SetActiveButton(btnProcessManager);
+
+            await LoadControlAsync(new ProcessMgrControl(), "Task Manager", btnProcessManager.Top);
+        }
+
+        #endregion
+
+        #region View Loading
+
+        private async Task LoadControlAsync(UserControl control, string viewName, int buttonY)
+        {
+            // Clear existing controls and dispose them
+            while (MainPanel.Controls.Count > 0)
+            {
+                var ctrl = MainPanel.Controls[0];
+                MainPanel.Controls.RemoveAt(0);
+                ctrl.Dispose();
+            }
+
             control.Dock = DockStyle.Fill;
             control.Margin = new Padding(2);
-            control.BackColor = Color.FromArgb(36, 36, 51);
+            control.BackColor = ColorPanelBackground;
 
             MainPanel.Padding = new Padding(10);
 
-            // Animate the active indicator
             AnimateIndicator(buttonY);
 
-            // Update header
             lblCurrentView.Text = viewName;
-            lblStatus.Text = "Loading " + viewName + "...";
+            lblStatus.Text = $"Loading {viewName}...";
 
             await Task.Run(() =>
             {
@@ -66,40 +119,32 @@ namespace KernelApp
             });
 
             lblStatus.Text = "System Ready";
+            SyscallHelper.Log($"VIEW: Loaded {viewName}");
         }
 
-        private int targetIndicatorY; // Store target position
+        #endregion
+
+        #region Indicator Animation
 
         private void AnimateIndicator(int targetY)
         {
-            // Stop any existing animation
-            indicatorTimer.Stop();
-
-            // Remove previous event handlers to avoid stacking
-            indicatorTimer.Tick -= IndicatorTimer_Tick;
-
-            // Set the new target
-            targetIndicatorY = targetY;
-
-            // Attach fresh handler and start
-            indicatorTimer.Tick += IndicatorTimer_Tick;
-            indicatorTimer.Start();
+            _indicatorTimer.Stop();
+            _targetIndicatorY = targetY;
+            _indicatorTimer.Start();
         }
 
         private void IndicatorTimer_Tick(object sender, EventArgs e)
         {
             int currentY = pnlActiveIndicator.Top;
-            int diff = targetIndicatorY - currentY;
+            int diff = _targetIndicatorY - currentY;
 
             if (Math.Abs(diff) < 2)
             {
-                // Snap to final position and stop
-                pnlActiveIndicator.Top = targetIndicatorY;
-                indicatorTimer.Stop();
+                pnlActiveIndicator.Top = _targetIndicatorY;
+                _indicatorTimer.Stop();
             }
             else
             {
-                // Smooth easing movement
                 int step = diff / 3;
                 if (step == 0)
                     step = diff > 0 ? 1 : -1;
@@ -107,81 +152,105 @@ namespace KernelApp
             }
         }
 
+        #endregion
+
+        #region Button Styling
+
         private void ResetButtonStyles()
         {
-            btnProcessManager.FillColor = Color.Transparent;
-            btnProcessManager.ForeColor = Color.FromArgb(166, 173, 186);
-            btnSystemConsole.FillColor = Color.Transparent;
-            btnSystemConsole.ForeColor = Color.FromArgb(166, 173, 186);
-            btnMemoryUsage.FillColor = Color.Transparent;
-            btnMemoryUsage.ForeColor = Color.FromArgb(166, 173, 186);
-            btnSyscallLogs.FillColor = Color.Transparent;
-            btnSyscallLogs.ForeColor = Color.FromArgb(166, 173, 186);
+            SetButtonStyle(btnProcessManager, false);
+            SetButtonStyle(btnSystemConsole, false);
+            SetButtonStyle(btnMemoryUsage, false);
+            SetButtonStyle(btnSyscallLogs, false);
+        }
+
+        private static void SetButtonStyle(Guna.UI2.WinForms.Guna2Button btn, bool isActive)
+        {
+            btn.FillColor = isActive ? ColorButtonActive : ColorButtonInactive;
+            btn.ForeColor = isActive ? ColorTextActive : ColorTextInactive;
         }
 
         private void SetActiveButton(Guna.UI2.WinForms.Guna2Button btn)
         {
             ResetButtonStyles();
-            btn.FillColor = Color.FromArgb(45, 45, 65);
-            btn.ForeColor = Color.White;
+            SetButtonStyle(btn, true);
         }
 
-        private async void MiniOs_Load(object sender, EventArgs e)
-        {
-            // Set initial indicator position without animation
-            pnlActiveIndicator.Top = btnProcessManager.Top;
-            SetActiveButton(btnProcessManager);
-            await LoadControl(new UserControls.ProcessMgrControl(), "Task Manager", btnProcessManager.Top);
-        }
+        #endregion
+
+        #region Navigation Event Handlers
 
         private async void btnProcessManager_Click(object sender, EventArgs e)
         {
             SetActiveButton(btnProcessManager);
-            await LoadControl(new UserControls.ProcessMgrControl(), "Task Manager", btnProcessManager.Top);
+            await LoadControlAsync(new ProcessMgrControl(), "Task Manager", btnProcessManager.Top);
         }
 
         private async void btnSystemConsole_Click(object sender, EventArgs e)
         {
             SetActiveButton(btnSystemConsole);
-            await LoadControl(new UserControls.ConsoleControl(), "Console", btnSystemConsole.Top);
+            await LoadControlAsync(new ConsoleControl(), "Console", btnSystemConsole.Top);
         }
 
         private async void btnMemoryUsage_Click(object sender, EventArgs e)
         {
             SetActiveButton(btnMemoryUsage);
-            await LoadControl(new UserControls.MemoryVisControl(), "Memory Usage", btnMemoryUsage.Top);
+            await LoadControlAsync(new MemoryVisControl(), "Memory Usage", btnMemoryUsage.Top);
         }
 
         private async void btnSyscallLogs_Click(object sender, EventArgs e)
         {
             SetActiveButton(btnSyscallLogs);
-            await LoadControl(new UserControls.SysLogControl(), "Syscall Logs", btnSyscallLogs.Top);
+            await LoadControlAsync(new SysLogControl(), "Syscall Logs", btnSyscallLogs.Top);
         }
 
         private void btnShutdown_Click(object sender, EventArgs e)
         {
             lblStatus.Text = "Shutting down...";
+            SyscallHelper.Log("MiniOS Kernel shutdown initiated");
+
             clockTimer.Stop();
-            indicatorTimer.Stop();
-            this.Close();
+            _indicatorTimer.Stop();
+
+            Close();
         }
+
+        #endregion
+
+        #region Clock & System Stats
 
         private void clockTimer_Tick(object sender, EventArgs e)
         {
             lblTime.Text = DateTime.Now.ToString("HH:mm:ss");
+            UpdateSystemStats();
+        }
 
-            // Update system stats
+        private void UpdateSystemStats()
+        {
             try
             {
-                float cpuUsage = cpuCounter?.NextValue() ?? 0;
-                lblCpu.Text = $"CPU: {cpuUsage:F0}%";
+                if (_cpuCounter != null)
+                {
+                    float cpuUsage = _cpuCounter.NextValue();
+                    lblCpu.Text = $"CPU: {cpuUsage:F0}%";
+                }
 
-                currentProcess?.Refresh();
-                long memoryMB = (currentProcess?.WorkingSet64 ?? 0) / (1024 * 1024);
-                lblMemory.Text = $"MEM: {memoryMB} MB";
+                if (_currentProcess != null)
+                {
+                    _currentProcess.Refresh();
+                    long memoryMB = _currentProcess.WorkingSet64 / (1024 * 1024);
+                    lblMemory.Text = $"MEM: {memoryMB} MB";
+                }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"MiniOs.UpdateSystemStats failed: {ex.Message}");
+            }
         }
+
+        #endregion
+
+        #region Window Controls
 
         private void headerpanel_MouseDown(object sender, MouseEventArgs e)
         {
@@ -194,19 +263,44 @@ namespace KernelApp
 
         private void btnMinimize_Click(object sender, EventArgs e)
         {
-            this.WindowState = FormWindowState.Minimized;
+            WindowState = FormWindowState.Minimized;
         }
 
         private void btnMaximize_Click(object sender, EventArgs e)
         {
-            this.WindowState = this.WindowState == FormWindowState.Maximized
+            WindowState = WindowState == FormWindowState.Maximized
                 ? FormWindowState.Normal
                 : FormWindowState.Maximized;
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
-            this.Close();
+            Close();
         }
+
+        #endregion
+
+        #region Cleanup
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            clockTimer?.Stop();
+            _indicatorTimer?.Stop();
+            _indicatorTimer?.Dispose();
+
+            _cpuCounter?.Dispose();
+            _currentProcess?.Dispose();
+
+            // Dispose all loaded UserControls
+            foreach (Control ctrl in MainPanel.Controls)
+            {
+                ctrl.Dispose();
+            }
+
+            SyscallHelper.Log("MiniOS Kernel shutdown complete");
+            base.OnFormClosing(e);
+        }
+
+        #endregion
     }
 }
