@@ -388,8 +388,8 @@ DoCountdown PROC
     movzx eax, screenInfo.dwCursorPosition.Y
     mov yPos, eax
     
-    ; Start countdown from 35
-    mov seconds, 35
+    ; Start countdown from 10
+    mov seconds, 10
     
 @@countLoop:
     ; Position cursor
